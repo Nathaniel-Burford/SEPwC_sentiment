@@ -1,11 +1,11 @@
 suppressPackageStartupMessages({
-library(sentimentr)
-library(tidytext)
-library(lubridate)
-library(dplyr)
-library(tidyr)
-library(argparse)
-library(ggpubr)
+  library(sentimentr)
+  library(tidytext)
+  library(lubridate)
+  library(dplyr)
+  library(tidyr)
+  library(argparse)
+  library(ggpubr)
 })
 
 load_data <- function(filename) {
