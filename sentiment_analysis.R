@@ -8,9 +8,18 @@ library(argparse)
 library(ggpubr)
 })
 
-load_data<-function(filename) {
-
-    return()
+load_data <- function(filename) {
+  data <- read.csv(filename, stringsAsFactors = FALSE)
+  # Removes HTML markers
+  data$content <- gsub("<[^>]+>", "", data$content)
+  # Makes create_at column a date time
+  data$created_at <- parse_date_time(data$created_at, c("%Y-%m-%d %H:%M:%S",
+                                                        "%Y-%m-%dT%H:%M:%S"))
+  # Makes sure language is English
+  data$language <- "en"
+  # Makes id class into a character
+  data$id <- as.character(data$id)
+  return(data) #nolint
 }
 
 word_analysis<-function(toot_data, emotion) {
