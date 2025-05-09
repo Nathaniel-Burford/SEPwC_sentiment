@@ -21,9 +21,20 @@ load_data <- function(filename) {
   return(data) #nolint
 }
 
-word_analysis<-function(toot_data, emotion) {
-
-    return()
+word_analysis <- function(toot_data, emotion) {
+  word_data <- toot_data %>%
+    # Makes 'content' column into individual words
+    unnest_tokens(word, content) %>%
+    inner_join(get_sentiments("nrc"), by = "word") %>%
+    filter(sentiment == emotion) %>%
+    group_by(word) %>%
+    # Counts occurrences of each word
+    summarise(n = n()) %>%
+    # Arranges words in descending order
+    arrange(desc(n)) %>%
+    # Selects the top 10 most frequent words
+    top_n(10, n)
+  return(word_data) #nolint
 }
 
 sentiment_analysis<-function(toot_data) {
