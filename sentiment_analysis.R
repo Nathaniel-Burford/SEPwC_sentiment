@@ -62,7 +62,14 @@ sentiment_analysis <- function(toot_data) {
   sentiment_data <- toot_data %>%
     select(id, created_at, content) %>%
     mutate(
-      afinn = sentiment(content)$sentiment,
+      afinn = sapply(content, function(x) {
+        s  <- sentiment(x)$sentiment
+        if (length(s) > 0) {
+          return(mean(s)) #nolint
+        } else {
+          return(0) #nolint
+        }
+      }),
       bing = map_dbl(content, tidy(.x) %>%
                        inner_join(get_sentiments("bing")) %>%
                        summarise(sentiment = sum(score)) %>%
