@@ -80,15 +80,22 @@ sentiment_analysis <- function(toot_data) {
          return(0) #nolint
         }
       }),
-      nrc = map_dbl(content, tidy(.x) %>%
-                      inner_join(get_sentiments("nrc")) %>%
-                      group_by(sentiment) %>%
-                      summarise(n = n()) %>%
-                      pivot_wider(names_from = seniment, values_from = n,
-                                  values_fill = 0) %>%
-                      mutate(sentiment = positive - negative) %>%
-                      pull(sentiment))
-    ) %>%
+      nrc = sapply(content, function(x) {
+        tidy_text <- tidy(x)
+        nrc_sentiment <- tidy_text %>%
+          inner_join(get_sentiments("nrc"))
+        if (nrow(nrc_sentiment) > 0) {
+          nrc_counts <- nrc_sentiment %>%
+            group_by(sentiment) %>%
+            summarise(n = n()) %>%
+            pivot_wider(names_from = sentiment, values_from = n,
+                        values_fill = 0)
+          return(nrc_counts$positive - nrc_counts$negative) #nolint
+        } else {
+          return(0) #nolint
+        }
+      })
+      ) %>%
     pivot_longer(cols = c(afinn, bing, nrc),
                  names_to = "method",
                  values_to = "sentiment_score")
