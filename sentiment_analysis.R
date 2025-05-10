@@ -25,6 +25,7 @@ word_analysis <- function(toot_data, emotion) {
   word_data <- toot_data %>%
     # Makes 'content' column into individual words
     unnest_tokens(word, content) %>%
+    # Joins the words with nrc lexicon to get each word's sentiment
     inner_join(get_sentiments("nrc"), by = "word") %>%
     filter(sentiment == emotion) %>%
     group_by(word) %>%
@@ -36,6 +37,7 @@ word_analysis <- function(toot_data, emotion) {
     arrange(desc(n)) %>%
     # Selects the top 10 most frequent words
     top_n(10, n) %>%
+    # Adds sentiment column
     mutate(sentiment = emotion)
   if (emotion == "joy") {
     word_data <- word_data %>%
@@ -50,6 +52,7 @@ word_analysis <- function(toot_data, emotion) {
       word_data$n <- integer()
       word_data$sentiment <- character()
       word_data$created_at <- as.POSIXct(character())
+      # Makes the code pass the test but might not handle word_analysis well
     }
   }
   return(word_data) #nolint
