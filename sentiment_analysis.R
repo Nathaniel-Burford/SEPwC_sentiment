@@ -29,11 +29,14 @@ word_analysis <- function(toot_data, emotion) {
     filter(sentiment == emotion) %>%
     group_by(word) %>%
     # Counts occurrences of each word
-    summarise(n = n()) %>%
+    summarise(n = n(),
+              id = first(id),
+              created_at = first(created_at)) %>%
     # Arranges words in descending order
     arrange(desc(n)) %>%
     # Selects the top 10 most frequent words
-    top_n(10, n)
+    top_n(10, n) %>%
+    mutate(sentiment = emotion)
   return(word_data) #nolint
 }
 
