@@ -65,7 +65,7 @@ sentiment_analysis <- function(toot_data) {
       afinn = vapply(content, function(x) {
         s <- sentiment(x)$sentiment
         if (length(s) > 0) {
-          return(mean(s)) #nolint
+          return(as.numeric(mean(s))) #nolint
         } else {
           return(0) #nolint
         }
@@ -75,6 +75,8 @@ sentiment_analysis <- function(toot_data) {
         text_df <- data.frame(text = x)
         # Explicitly create tidy_text
         tidy_text <- tidy(text_df)
+        #Makes sure word is a character before joining
+        tidy_text$word <- as.character(tidy_text$word)
         bing_sentiment <- tidy_text %>%
           inner_join(get_sentiments("bing"))
         if (nrow(bing_sentiment) > 0) {
@@ -87,6 +89,7 @@ sentiment_analysis <- function(toot_data) {
         # Creates a small data frame for tidy()
         text_df <- data.frame(text = x)
         tidy_text <- tidy(text_df)
+        tidy_text$word <- as.character(tidy_text$word)
         nrc_sentiment <- tidy_text %>%
           inner_join(get_sentiments("nrc"))
         if (nrow(nrc_sentiment) > 0) {
