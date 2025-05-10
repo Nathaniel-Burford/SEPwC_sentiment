@@ -23,22 +23,17 @@ load_data <- function(filename) {
 
 word_analysis <- function(toot_data, emotion) {
   word_data <- toot_data %>%
-    # Keeps only relevant columns
-    select(id, created_at, content)
-  # Makes 'content' column into individual words
-  word_data <- word_data_with_id %>%
+    # Makes 'content' column into individual words
     unnest_tokens(word, content) %>%
     inner_join(get_sentiments("nrc"), by = "word") %>%
     filter(sentiment == emotion) %>%
-    # Groups expected colnames
-    group_by(id, created_at, word) %>%
+    group_by(word) %>%
     # Counts occurrences of each word
     summarise(n = n()) %>%
     # Arranges words in descending order
     arrange(desc(n)) %>%
     # Selects the top 10 most frequent words
-    top_n(10, n) %>%
-    ungroup()
+    top_n(10, n)
   return(word_data) #nolint
 }
 
