@@ -76,9 +76,12 @@ sentiment_analysis <- function(toot_data) {
         # Explicitly create tidy_text
         tidy_text <- tidy(text_df)
         #Makes sure word is a character before joining
-        tidy_text$word <- as.character(tidy_text$word)
-        bing_sentiment <- tidy_text %>%
+        bing_lexicon <- get_sentiments("bing")
+        bing_lexicon$word <- as.character(bing_lexicon$word)
+        joined_data <- tidy_text %>%
           inner_join(get_sentiments("bing"))
+        print("str(joined_data) for bing:")
+        print(str(joined_data))
         if (nrow(bing_sentiment) > 0) {
           return(as.numeric(sum(bing_sentiment$score))) #nolint
         } else {
@@ -90,8 +93,12 @@ sentiment_analysis <- function(toot_data) {
         text_df <- data.frame(text = x)
         tidy_text <- tidy(text_df)
         tidy_text$word <- as.character(tidy_text$word)
-        nrc_sentiment <- tidy_text %>%
-          inner_join(get_sentiments("nrc"))
+        nrc_lexicon <- get_sentiments("nrc")
+        nrc_lexicon$word <- as.character(nrc_lexicon$word)
+        joined_data <- tidy_text %>%
+          inner_join(nrc_lexicon, by = "word") # Corrected line
+        print("str(joined_data) for nrc:")
+        print(str(joined_data))
         if (nrow(nrc_sentiment) > 0) {
           nrc_counts <- nrc_sentiment %>%
             group_by(sentiment) %>%
