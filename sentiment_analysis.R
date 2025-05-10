@@ -63,7 +63,7 @@ sentiment_analysis <- function(toot_data) {
     select(id, created_at, content) %>%
     mutate(
       afinn = sapply(content, function(x) {
-        s  <- sentiment(x)$sentiment
+        s <- sentiment(x)$sentiment
         if (length(s) > 0) {
           return(mean(s)) #nolint
         } else {
@@ -73,6 +73,8 @@ sentiment_analysis <- function(toot_data) {
       bing <- sapply(content, function(x) {
         # Creates a small data frame for tidy()
         text_df <- data.frame(text = x)
+        # Explicitly create tidy_text
+        tidy_text <- tidy(text_df)
         bing_sentiment <- tidy_text %>%
           tidy() %>%
           inner_join(get_sentiments("bing"))
@@ -84,8 +86,9 @@ sentiment_analysis <- function(toot_data) {
       }),
       nrc = sapply(content, function(x) {
         # Creates a small data frame for tidy()
-        text_df <- data.frame(test = x)
-        nrc_sentiment <- text_df %>%
+        text_df <- data.frame(text = x)
+        tidy_text <- tidy(text_df)
+        nrc_sentiment <- tidy_text %>%
           tidy() %>% 
           inner_join(get_sentiments("nrc"))
         if (nrow(nrc_sentiment) > 0) {
