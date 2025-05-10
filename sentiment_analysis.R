@@ -70,10 +70,16 @@ sentiment_analysis <- function(toot_data) {
           return(0) #nolint
         }
       }),
-      bing = map_dbl(content, tidy(.x) %>%
-                       inner_join(get_sentiments("bing")) %>%
-                       summarise(sentiment = sum(score)) %>%
-                       pull(sentiment)),
+      bing <- sapply(content, function(x) {
+        tidy_text <- tidy(x)
+        bing_sentiment <- tidy_text %>%
+          inner_join(get_sentiments("bing"))
+        if (nrow(bing_sentiment) > 0) {
+          return(sum(bing_sentiment$score)) #nolint
+        } else {
+         return(0) #nolint
+        }
+      }),
       nrc = map_dbl(content, tidy(.x) %>%
                       inner_join(get_sentiments("nrc")) %>%
                       group_by(sentiment) %>%
