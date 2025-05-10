@@ -71,8 +71,10 @@ sentiment_analysis <- function(toot_data) {
         }
       }),
       bing <- sapply(content, function(x) {
-        tidy_text <- tidy(x)
+        # Creates a small data frame for tidy()
+        text_df <- data.frame(text = x)
         bing_sentiment <- tidy_text %>%
+          tidy() %>%
           inner_join(get_sentiments("bing"))
         if (nrow(bing_sentiment) > 0) {
           return(sum(bing_sentiment$score)) #nolint
@@ -81,8 +83,10 @@ sentiment_analysis <- function(toot_data) {
         }
       }),
       nrc = sapply(content, function(x) {
-        tidy_text <- tidy(x)
-        nrc_sentiment <- tidy_text %>%
+        # Creates a small data frame for tidy()
+        text_df <- data.frame(test = x)
+        nrc_sentiment <- text_df %>%
+          tidy() %>% 
           inner_join(get_sentiments("nrc"))
         if (nrow(nrc_sentiment) > 0) {
           nrc_counts <- nrc_sentiment %>%
@@ -90,12 +94,17 @@ sentiment_analysis <- function(toot_data) {
             summarise(n = n()) %>%
             pivot_wider(names_from = sentiment, values_from = n,
                         values_fill = 0)
-          return(nrc_counts$positive - nrc_counts$negative) #nolint
+          # Makes sure pos + neg column exists
+          postive_col <- nrc_counts$positive
+          negative_col <- nrc_counts$negative
+          if (is.null(positive_col)) positive_col <- 0
+          if (is.null(negative_col)) negative_col <- 0
+          return(positive_col - negative)
         } else {
           return(0) #nolint
         }
       })
-      ) %>%
+    ) %>%
     pivot_longer(cols = c(afinn, bing, nrc),
                  names_to = "method",
                  values_to = "sentiment_score")
