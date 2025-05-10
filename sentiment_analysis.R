@@ -30,8 +30,8 @@ word_analysis <- function(toot_data, emotion) {
     group_by(word) %>%
     # Counts occurrences of each word
     summarise(n = n(),
-              id = first(id),
-              created_at = first(created_at)) %>%
+              id = paste(unique(id), collapse = ","),
+              created_at = paste(unique(created_at), collapse = ",")) %>%
     # Arranges words in descending order
     arrange(desc(n)) %>%
     # Selects the top 10 most frequent words
