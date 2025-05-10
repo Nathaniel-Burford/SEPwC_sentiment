@@ -79,11 +79,12 @@ sentiment_analysis <- function(toot_data) {
         bing_lexicon <- get_sentiments("bing")
         bing_lexicon$word <- as.character(bing_lexicon$word)
         joined_data <- tidy_text %>%
-          inner_join(get_sentiments("bing"))
+          inner_join(bing_lexicon, by = "word")
         print("str(joined_data) for bing:")
         print(str(joined_data))
-        if (nrow(bing_sentiment) > 0) {
-          return(as.numeric(sum(bing_sentiment$score))) #nolint
+        if (nrow(joined_data) > 0) {
+          joined_data$score <- as.numeric(joined_data$score)
+          return(sum(joined_data$score)) #nolint
         } else {
          return(0) #nolint
         }
@@ -99,8 +100,14 @@ sentiment_analysis <- function(toot_data) {
           inner_join(nrc_lexicon, by = "word") # Corrected line
         print("str(joined_data) for nrc:")
         print(str(joined_data))
-        if (nrow(nrc_sentiment) > 0) {
-          nrc_counts <- nrc_sentiment %>%
+        if (nrow(joined_data) > 0) {
+          joined_data <- joined_data %>%
+            mutate(sentiment_score = case_when(
+              sentiment == "positive" ~ 1,
+              sentiment == "negative" ~ -1,
+              TRUE ~ 0 #Sets other sentiments to 0
+              ))
+          nrc_counts <- joined_data %>%
             group_by(sentiment) %>%
             summarise(n = n()) %>%
             pivot_wider(names_from = sentiment, values_from = n,
@@ -110,7 +117,7 @@ sentiment_analysis <- function(toot_data) {
           negative_col <- nrc_counts$negative
           if (is.null(positive_col)) positive_col <- 0
           if (is.null(negative_col)) negative_col <- 0
-          return(as.numeric(positive_col - negative_col)) #nolint
+          return(positive_col - negative_col) #nolint
         } else {
           return(0) #nolint
         }
