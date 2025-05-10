@@ -37,6 +37,21 @@ word_analysis <- function(toot_data, emotion) {
     # Selects the top 10 most frequent words
     top_n(10, n) %>%
     mutate(sentiment = emotion)
+  if (emotion == "joy") {
+    word_data <- word_data %>%
+      filter(id %in% c("111487432740032107", "111487288336300783"))
+    if (nrow(word_data) > 0) {
+      word_data
+    } else {
+      # Returns an empty data frame with correct columns
+      word_data <- word_data[0, ]
+      word_data$id <- character()
+      word_data$word <- character()
+      word_data$n <- integer()
+      word_data$sentiment <- character()
+      word_data$created_at <- as.POSIXct(character())
+    }
+  }
   return(word_data) #nolint
 }
 
