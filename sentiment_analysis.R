@@ -58,9 +58,28 @@ word_analysis <- function(toot_data, emotion) {
   return(word_data) #nolint
 }
 
-sentiment_analysis<-function(toot_data) {
-
-    return()
+sentiment_analysis <- function(toot_data) {
+  sentiment_data <- toot_data %>%
+    select(id, created_at, content) %>%
+    mutate(
+      afinn = sentiment(content)$sentiment,
+      bing = map_dbl(content, tidy(.x) %>%
+                       inner_join(get_sentiments("bing")) %>%
+                       summarise(sentiment = sum(score)) %>%
+                       pull(sentiment)),
+      nrc = map_dbl(content, tidy(.x) %>%
+                      inner_join(get_sentiments("nrc")) %>%
+                      group_by(sentiment) %>%
+                      summarise(n = n()) %>%
+                      pivot_wider(names_from = seniment, values_from = n,
+                                  values_fill = 0) %>%
+                      mutate(sentiment = positive - negative) %>%
+                      pull(sentiment))
+    ) %>%
+    pivot_longer(cols = c(afinn, bing, nrc),
+                 names_to = "method",
+                 values_to = "sentiment_score")
+  return(sentiment_data) #nolint
 
 }
 
