@@ -74,8 +74,7 @@ sentiment_analysis <- function(toot_data) {
         # Creates a small data frame for tidy()
         text_df <- data.frame(text = x)
         # Explicitly create tidy_text
-        tidy_text <- text_df %>%
-          unnest_tokens(word, text)
+        tidy_text <- text_df %>% unnest_tokens(word, text)
         #Makes sure word is a character before joining
         bing_lexicon <- get_sentiments("bing")
         bing_lexicon$word <- as.character(bing_lexicon$word)
@@ -107,18 +106,17 @@ sentiment_analysis <- function(toot_data) {
               sentiment == "positive" ~ 1,
               sentiment == "negative" ~ -1,
               TRUE ~ 0 #Sets other sentiments to 0
-              ))
+            ))
           nrc_counts <- joined_data %>%
             group_by(sentiment) %>%
             summarise(n = n()) %>%
             pivot_wider(names_from = sentiment, values_from = n,
                         values_fill = 0)
-          # Makes sure pos + neg column exists
-          postive_col <- nrc_counts$positive
-          negative_col <- nrc_counts$negative
-          if (is.null(positive_col)) positive_col <- 0
-          if (is.null(negative_col)) negative_col <- 0
-          return(positive_col - negative_col) #nolint
+          positive <- 0
+          negative <- 0
+          positive <- coalesce(nrc_counts$positive, positive)
+          negative <- coalesce(nrc_counts$negative, negative)
+          return(positive - negative) #nolint
         } else {
           return(0) #nolint
         }
