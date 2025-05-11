@@ -109,11 +109,12 @@ sentiment_analysis <- function(toot_data) {
         }
       }, FUN.VALUE = numeric(1))
     ) %>%
-    pivot_longer(cols = ends_with("score"),
+    pivot_longer(cols = c("afinn", "nrc", "bing"),
                  names_to = "method",
                  values_to = "sentiment") %>%
-    mutate(method = gsub("_score", ",", method)) %>%
-    select(id, created_at, method, sentiment)
+    select(id, created_at, method, sentiment) %>%
+    arrange(id, created_at, factor(method, levels =c("afinn", "nrc", "bing")))
+  print(unique(sentiment_data$id))
   return(sentiment_data) #nolint
 
 }
