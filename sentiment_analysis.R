@@ -70,11 +70,12 @@ sentiment_analysis <- function(toot_data) {
           return(0) #nolint
         }
       }, FUN.VALUE = numeric(1)),
-      bing <- vapply(content, function(x) {
+      bing = vapply(content, function(x) {
         # Creates a small data frame for tidy()
         text_df <- data.frame(text = x)
         # Explicitly create tidy_text
-        tidy_text <- text_df %>% unnest_tokens(word, text)
+        tidy_text <- text_df %>%
+          unnest_tokens(word, text)
         #Makes sure word is a character before joining
         bing_lexicon <- get_sentiments("bing")
         bing_lexicon$word <- as.character(bing_lexicon$word)
@@ -83,7 +84,7 @@ sentiment_analysis <- function(toot_data) {
         if (nrow(joined_data) > 0) {
           return(sum(joined_data$score)) #nolint
         } else {
-         return(0) #nolint
+         return(NA_integer_) #nolint
         }
       }, FUN.VALUE = numeric(1)),
       nrc = vapply(content, function(x) {
@@ -121,7 +122,8 @@ sentiment_analysis <- function(toot_data) {
     ) %>%
     pivot_longer(cols = c(afinn, bing, nrc),
                  names_to = "method",
-                 values_to = "sentiment_score")
+                 values_to = "sentiment_score"
+                 ) %>%
   return(sentiment_data) #nolint
 
 }
