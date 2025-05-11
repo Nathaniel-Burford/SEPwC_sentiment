@@ -80,8 +80,6 @@ sentiment_analysis <- function(toot_data) {
         bing_lexicon$word <- as.character(bing_lexicon$word)
         joined_data <- tidy_text %>%
           inner_join(bing_lexicon, by = "word")
-        print("str(joined_data) for bing:")
-        print(str(joined_data))
         if (nrow(joined_data) > 0) {
           return(sum(joined_data$score)) #nolint
         } else {
@@ -98,8 +96,6 @@ sentiment_analysis <- function(toot_data) {
         nrc_lexicon$word <- as.character(nrc_lexicon$word)
         joined_data <- tidy_text %>%
           inner_join(nrc_lexicon, by = "word") # Corrected line
-        print("str(joined_data) for nrc:")
-        print(str(joined_data))
         if (nrow(joined_data) > 0) {
           joined_data <- joined_data %>%
             mutate(sentiment_score = case_when(
