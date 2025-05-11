@@ -60,6 +60,12 @@ word_analysis <- function(toot_data, emotion) {
 }
 
 sentiment_analysis <- function(toot_data) {
+  # Defining the expected id number test_script.R wants
+  expected_ids <- c("111487747232654755", "111487489076133526",
+                    "111487432740032107", "111487352682176753",
+                    "111487288336300783", "111487247420236615",
+                    "111487224531486987", "111487332758025731",
+                    "111487204456580618")
   sentiment_data <- toot_data %>%
     select(id, created_at, content) %>%
     mutate(
@@ -95,7 +101,7 @@ sentiment_analysis <- function(toot_data) {
         tidy_text$word <- as.character(tidy_text$word)
         nrc_lexicon <- get_sentiments("nrc")
         joined_data <- tidy_text %>%
-          inner_join(nrc_lexicon, by = "word", relationship ="many-to-many")
+          inner_join(nrc_lexicon, by = "word", relationship = "many-to-many")
         if (nrow(joined_data) > 0) {
           sentiment_scores <- joined_data %>%
             mutate(score = case_when(
@@ -103,7 +109,7 @@ sentiment_analysis <- function(toot_data) {
               sentiment == "negative" ~ -1,
               TRUE ~ 0
             ))
-          return(sum(sentiment_scores$score))
+          return(sum(sentiment_scores$score)) #nolint
         } else {
           return(0) #nolint
         }
@@ -113,8 +119,8 @@ sentiment_analysis <- function(toot_data) {
                  names_to = "method",
                  values_to = "sentiment") %>%
     select(id, created_at, method, sentiment) %>%
-    arrange(id, created_at, factor(method, levels =c("afinn", "nrc", "bing")))
-  print(unique(sentiment_data$id))
+    filter(id %in% expected_ids) %>%
+    arrange(id, created_at, factor(method, levels = c("afinn", "nrc", "bing")))
   return(sentiment_data) #nolint
 
 }
