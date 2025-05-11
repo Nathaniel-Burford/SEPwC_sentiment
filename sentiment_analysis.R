@@ -26,7 +26,8 @@ word_analysis <- function(toot_data, emotion) {
     # Makes 'content' column into individual words
     unnest_tokens(word, content) %>%
     # Joins the words with nrc lexicon to get each word's sentiment
-    inner_join(get_sentiments("nrc"), by = "word") %>%
+    inner_join(get_sentiments("nrc"), by = "word",
+               relationship = "many-to-many") %>%
     filter(sentiment == emotion) %>%
     group_by(word) %>%
     # Counts occurrences of each word
@@ -80,7 +81,7 @@ sentiment_analysis <- function(toot_data) {
         bing_lexicon <- get_sentiments("bing")
         bing_lexicon$word <- as.character(bing_lexicon$word)
         joined_data <- tidy_text %>%
-          inner_join(bing_lexicon, by = "word")
+          inner_join(bing_lexicon, by = "word", relationship = "many-to-many")
         if (nrow(joined_data) > 0) {
           return(sum(joined_data$score)) #nolint
         } else {
@@ -121,9 +122,10 @@ sentiment_analysis <- function(toot_data) {
       }, FUN.VALUE = numeric(1))
     ) %>%
     pivot_longer(cols = c(afinn, bing, nrc),
-                 names_to = "method",
-                 values_to = "sentiment_score"
+                 names_to = "sentiment",
+                 values_to = "method"
                  ) %>%
+    select(id, created_at, sentiment, method)
   return(sentiment_data) #nolint
 
 }
