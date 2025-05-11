@@ -79,13 +79,12 @@ sentiment_analysis <- function(toot_data) {
           unnest_tokens(word, text)
         #Makes sure word is a character before joining
         bing_lexicon <- get_sentiments("bing")
-        bing_lexicon$word <- as.character(bing_lexicon$word)
         joined_data <- tidy_text %>%
           inner_join(bing_lexicon, by = "word", relationship = "many-to-many")
         if (nrow(joined_data) > 0) {
-          return(sum(joined_data$score)) #nolint
+          return(sum(ifelse(joined_data$sentiment == "positive", 1, -1)))#nolint
         } else {
-         return(NA_integer_) #nolint
+         return(0) #nolint
         }
       }, FUN.VALUE = numeric(1)),
       nrc = vapply(content, function(x) {
@@ -95,37 +94,26 @@ sentiment_analysis <- function(toot_data) {
           unnest_tokens(word, text)
         tidy_text$word <- as.character(tidy_text$word)
         nrc_lexicon <- get_sentiments("nrc")
-        nrc_lexicon$word <- as.character(nrc_lexicon$word)
         joined_data <- tidy_text %>%
-          inner_join(nrc_lexicon, by = "word") # Corrected line
+          inner_join(nrc_lexicon, by = "word", relationship ="many-to-many")
         if (nrow(joined_data) > 0) {
-          joined_data <- joined_data %>%
-            mutate(sentiment_score = case_when(
+          sentiment_scores <- joined_data %>%
+            mutate(score = case_when(
               sentiment == "positive" ~ 1,
               sentiment == "negative" ~ -1,
-              TRUE ~ 0 #Sets other sentiments to 0
+              TRUE ~ 0
             ))
-          nrc_counts <- joined_data %>%
-            group_by(sentiment) %>%
-            summarise(n = n()) %>%
-            pivot_wider(names_from = sentiment, values_from = n,
-                        values_fill = 0)
-          positive_col <- 0
-          negative_col <- 0
-          positive_col <- coalesce(nrc_counts$positive, positive_col)
-          negative_col <- coalesce(nrc_counts$negative, negative_col)
-          cols <- (positive_col && negative_col)
-          return(positive_col - negative_col) #nolint
+          return(sum(sentiment_scores$score))
         } else {
           return(0) #nolint
         }
       }, FUN.VALUE = numeric(1))
     ) %>%
-    pivot_longer(cols = c(afinn, bing, nrc),
-                 names_to = "sentiment",
-                 values_to = "method"
-                 ) %>%
-    select(id, created_at, sentiment, method)
+    pivot_longer(cols = ends_with("score"),
+                 names_to = "method",
+                 values_to = "sentiment") %>%
+    mutate(method = gsub("_score", ",", method)) %>%
+    select(id, created_at, method, sentiment)
   return(sentiment_data) #nolint
 
 }
