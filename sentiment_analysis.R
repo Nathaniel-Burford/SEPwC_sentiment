@@ -6,6 +6,7 @@ suppressPackageStartupMessages({
   library(tidyr)
   library(argparse)
   library(ggpubr)
+  library(ggplot2)
 })
 
 load_data <- function(filename) {
@@ -126,11 +127,28 @@ sentiment_analysis <- function(toot_data) {
 }
 
 main <- function(args) {
-
+  data <- load_data(args$filename)
+  if (!is.null(args$emotion)) {
+    print(word_output)
+  }
+  if (!is.null(args$plot)) {
+    sentiment_output <- sentiment_analysis(data)
+    plot_obj <- ggplot(sentiment_output, aes(x = created_at,
+                                             y = sentiment, fill = method)) +
+      geom_col(show.legend = FALSE) +
+      facet_wrap(~ method, ncol = 2, scales = "free_y") +
+      labs(title = "Sentiment Distribution by Method",
+           x = "Sentiment Score", y = "Number of toots") +
+      theme_minimal()
+    ggsave(args$plot, plot_obj)
+    if (args$verbose) {
+      cat(paste0("Plot saved to ", args$plot, "\n"))
+    }
+  }
 }
 
 
-if(sys.nframe() == 0) {
+if (sys.nframe() == 0) {
 
   # main program, called via Rscript
   parser = ArgumentParser(
