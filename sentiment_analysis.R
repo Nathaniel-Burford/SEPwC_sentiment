@@ -112,11 +112,12 @@ sentiment_analysis <- function(toot_data) {
             summarise(n = n()) %>%
             pivot_wider(names_from = sentiment, values_from = n,
                         values_fill = 0)
-          positive <- 0
-          negative <- 0
-          positive <- coalesce(nrc_counts$positive, positive)
-          negative <- coalesce(nrc_counts$negative, negative)
-          return(positive - negative) #nolint
+          positive_col <- 0
+          negative_col <- 0
+          positive_col <- coalesce(nrc_counts$positive, positive_col)
+          negative_col <- coalesce(nrc_counts$negative, negative_col)
+          cols <- (positive_col && negative_col)
+          return(positive_col - negative_col) #nolint
         } else {
           return(0) #nolint
         }
