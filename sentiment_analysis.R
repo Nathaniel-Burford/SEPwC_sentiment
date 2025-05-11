@@ -128,6 +128,7 @@ sentiment_analysis <- function(toot_data) {
 
 main <- function(args) {
   data <- load_data(args$filename)
+  word_output <- NULL # First creates word_output
   if (!is.null(args$emotion)) {
     print(word_output)
   }
