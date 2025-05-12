@@ -7,6 +7,7 @@ suppressPackageStartupMessages({
   library(argparse)
   library(ggpubr)
   library(ggplot2)
+  library(knitr)
 })
 
 load_data <- function(filename) {
@@ -130,7 +131,12 @@ main <- function(args) {
   data <- load_data(args$filename)
   word_output <- NULL # First creates word_output
   if (!is.null(args$emotion)) {
-    print(word_output)
+    word_output <- word_analysis(data, args$emotion)
+    if (!is.null(word_output) && nrow(word_output) > 0) {
+      print(word_output %>%
+              select(word, n) %>%
+              kable(row.names = FALSE))
+    }
   }
   if (!is.null(args$plot)) {
     sentiment_output <- sentiment_analysis(data)
@@ -139,14 +145,18 @@ main <- function(args) {
       geom_col(show.legend = FALSE) +
       facet_wrap(~ method, ncol = 2, scales = "free_y") +
       labs(title = "Sentiment Distribution by Method",
-           x = "Sentiment Score", y = "Number of toots") +
+           x = "Time of toot", y = "Sentiment Score") +
       theme_minimal()
     ggsave(args$plot, plot_obj)
     if (args$verbose) {
       cat(paste0("Plot saved to ", args$plot, "\n"))
     }
+    cat("ggsave function executed. \n")
+  } else {
+    cat("No data to plot \n")
   }
 }
+
 
 
 if (sys.nframe() == 0) {
