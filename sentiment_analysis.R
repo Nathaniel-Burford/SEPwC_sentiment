@@ -119,21 +119,23 @@ main <- function(args) {
   }
   if (!is.null(args$output)) {
     sentiment_output <- sentiment_analysis(data)
-    plot_obj <- ggplot(sentiment_output, aes(x = created_at,
-                                             y = sentiment, fill = method)) +
-      geom_col(stat = "identity", show.legend = FALSE) +
-      facet_wrap(~ method, ncol = 2, scales = "free_y") +
-      labs(title = "Sentiment Distribution by Method",
-           x = "Time of toot", y = "Sentiment Score") +
-      theme_minimal()
-    ggsave(args$output, plot_obj, width = 10, height = 6)
-    if (args$verbose) {
-      cat(paste0("Plot saved to ", args$output, "\n"))
-    }
-  } else {
-    if (args$verbose) {
-      cat("No data to plot \n")
-    }
+    if (!is.null(sentiment_output) && nrow(sentiment_output) > 0) {
+      plot_obj <- ggplot(sentiment_output, aes(x = created_at,
+                                               y = sentiment, fill = method)) +
+        geom_col(show.legend = FALSE) +
+        facet_wrap(~ method, ncol = 2, scales = "free_y") +
+        labs(title = "Sentiment Distribution by Method",
+             x = "Time of toot", y = "Sentiment Score") +
+        theme_minimal()
+      ggsave(args$output, plot_obj, width = 10, height = 6)
+      if (isTRUE(args$verbose)) {
+        cat(paste0("Plot saved to ", args$output, "\n"))
+        }
+      } else {
+        if (isTRUE(args$verbose)) {
+          cat("No data to plot \n")
+        }
+      }
   }
 }
 
