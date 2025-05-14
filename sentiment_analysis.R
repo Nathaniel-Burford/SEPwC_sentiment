@@ -1,3 +1,4 @@
+options(python_cmd = "C:\\ProgramData\\anaconda3\\python.exe")
 suppressPackageStartupMessages({
   library(sentimentr)
   library(tidytext)
