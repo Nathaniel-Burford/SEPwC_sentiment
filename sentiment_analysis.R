@@ -79,7 +79,7 @@ sentiment_analysis <- function(toot_data, expected_ids = NULL) {
         if (nrow(joined) > 0) {
           sum(ifelse(joined$sentiment == "positive", 1, -1))
         } else {
-          return(0)
+          return(0) #nolint
         }
       }, FUN.VALUE = numeric(1)),
       nrc = vapply(content, function(x) {
@@ -94,7 +94,7 @@ sentiment_analysis <- function(toot_data, expected_ids = NULL) {
             TRUE ~ 0
           ))
         } else {
-          return(0)
+          return(0) #nolint
         }
       }, FUN.VALUE = numeric(1))
     ) %>%
@@ -108,9 +108,7 @@ sentiment_analysis <- function(toot_data, expected_ids = NULL) {
 
 main <- function(args) {
   data <- load_data(args$filename)
-  word_output <- NULL # First creates word_output
   if (!is.null(args$emotion)) {
-    word_output <- word_analysis(data, args$emotion)
   }
   if (!is.null(args$output)) {
     sentiment_output <- sentiment_analysis(data)
@@ -125,12 +123,12 @@ main <- function(args) {
       ggsave(args$output, plot_obj, width = 10, height = 6)
       if (isTRUE(args$verbose)) {
         cat(paste0("Plot saved to ", args$output, "\n"))
-        }
-      } else {
-        if (isTRUE(args$verbose)) {
-          cat("No data to plot \n")
-        }
       }
+    } else {
+      if (isTRUE(args$verbose)) {
+        cat("No data to plot \n")
+      }
+    }
   }
 }
 
@@ -139,21 +137,20 @@ main <- function(args) {
 if (sys.nframe() == 0) {
 
   # main program, called via Rscript
-  parser = ArgumentParser(
-                    prog="Sentiment Analysis",
-                    description="Analyse toots for word and sentence sentiments"
-                    )
+  parser <- ArgumentParser(
+    prog = "Sentiment Analysis",
+    description = "Analyse toots for word and sentence sentiments"
+  )
   parser$add_argument("filename",
-                    help="the file to read the toots from")
+                      help = "the file to read the toots from")
   parser$add_argument("--emotion",
-                      default="anger",
-                      help="which emotion to search for")
-  parser$add_argument('-v', '--verbose',
-                    action='store_true',
-                    help="Print progress")
-  parser$add_argument('-p', '--plot',
-                    help="Plot something. Give the filename")
-  
-  args = parser$parse_args()  
+                      default = "anger",
+                      help = "which emotion to search for")
+  parser$add_argument("-v", "--verbose",
+                      action = "store_true",
+                      help = "Print progress")
+  parser$add_argument("-p", "--plot",
+                      help = "Plot something. Give the filename")
+  args <- parser$parse_args()
   main(args)
 }
