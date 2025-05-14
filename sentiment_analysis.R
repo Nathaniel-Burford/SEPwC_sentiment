@@ -61,71 +61,50 @@ word_analysis <- function(toot_data, emotion) {
   return(word_data) #nolint
 }
 
-sentiment_analysis <- function(toot_data) {
-  # Defining the expected id number test_script.R wants
-  expected_ids <- c("111487747232654755", "111487489076133526",
-                    "111487432740032107", "111487352682176753",
-                    "111487288336300783", "111487247420236615",
-                    "111487224531486987", "111487332758025731",
-                    "111487204456580618")
+sentiment_analysis <- function(toot_data, expected_ids = NULL) {
   sentiment_data <- toot_data %>%
+    filter(id %in% expected_ids) %>%
+    mutate(content = ifelse(is.na(content), "", content)) %>%
     select(id, created_at, content) %>%
     mutate(
       afinn = vapply(content, function(x) {
         s <- sentiment(x)$sentiment
-        if (length(s) > 0) {
-          return(as.numeric(mean(s))) #nolint
-        } else {
-          return(0) #nolint
-        }
+        if (length(s) > 0) mean(s) else 0
       }, FUN.VALUE = numeric(1)),
       bing = vapply(content, function(x) {
-        # Creates a small data frame for tidy()
-        text_df <- data.frame(text = x)
-        # Explicitly create tidy_text
-        tidy_text <- text_df %>%
+        tidy_text <- data.frame(text = x) %>%
           unnest_tokens(word, text)
-        #Makes sure word is a character before joining
-        bing_lexicon <- get_sentiments("bing")
-        joined_data <- tidy_text %>%
-          inner_join(bing_lexicon, by = "word", relationship = "many-to-many")
-        if (nrow(joined_data) > 0) {
-          return(sum(ifelse(joined_data$sentiment == "positive", 1, -1)))#nolint
+        joined <- inner_join(tidy_text, get_sentiments("bing"), by = "word",
+                             relationship = "many-to-many")
+        if (nrow(joined) > 0) {
+          sum(ifelse(joined$sentiment == "positive", 1, -1))
         } else {
-         return(0) #nolint
+          return(0)
         }
       }, FUN.VALUE = numeric(1)),
       nrc = vapply(content, function(x) {
-        # Creates a small data frame for tidy()
-        text_df <- data.frame(text = x)
-        tidy_text <- text_df %>%
+        tidy_text <- data.frame(text = x) %>%
           unnest_tokens(word, text)
-        tidy_text$word <- as.character(tidy_text$word)
-        nrc_lexicon <- get_sentiments("nrc")
-        joined_data <- tidy_text %>%
-          inner_join(nrc_lexicon, by = "word", relationship = "many-to-many")
-        if (nrow(joined_data) > 0) {
-          sentiment_scores <- joined_data %>%
-            mutate(score = case_when(
-              sentiment == "positive" ~ 1,
-              sentiment == "negative" ~ -1,
-              TRUE ~ 0
-            ))
-          return(sum(sentiment_scores$score)) #nolint
+        joined <- inner_join(tidy_text, get_sentiments("nrc"), by = "word",
+                             relationship = "many-to-many")
+        if (nrow(joined) > 0) {
+          sum(case_when(
+            joined$sentiment == "positive" ~ 1,
+            joined$sentiment == "negative" ~ -1,
+            TRUE ~ 0
+          ))
         } else {
-          return(0) #nolint
+          return(0)
         }
       }, FUN.VALUE = numeric(1))
     ) %>%
+    select(id, created_at, afinn, bing, nrc) %>%
     pivot_longer(cols = c("afinn", "nrc", "bing"),
-                 names_to = "method",
-                 values_to = "sentiment") %>%
-    select(id, created_at, method, sentiment) %>%
-    filter(id %in% expected_ids) %>%
-    arrange(id, created_at, factor(method, levels = c("afinn", "nrc", "bing")))
-  return(sentiment_data) #nolint
-
+                 names_to = "method", values_to = "sentiment") %>%
+    arrange(factor(id, levels = expected_ids), method)
+  return(sentiment_data)
 }
+
 
 main <- function(args) {
   data <- load_data(args$filename)
