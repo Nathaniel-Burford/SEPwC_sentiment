@@ -130,6 +130,10 @@ main <- function(args) {
     if (args$verbose) {
       cat(paste0("Plot saved to ", args$output, "\n"))
     }
+  } else {
+    if (args$verbose) {
+      cat("No data to plot \n")
+    }
   }
 }
 
