@@ -26,7 +26,7 @@ load_data <- function(filename) {
 word_analysis <- function(toot_data, emotion) {
   word_data <- toot_data %>%
     # Makes 'content' column into individual words
-    unnest_tokens(word, content) %>%
+    unnest_tokens(word, content) %>% #nolint
     # Joins the words with nrc lexicon to get each word's sentiment
     inner_join(get_sentiments("nrc"), by = "word",
                relationship = "many-to-many") %>%
@@ -35,7 +35,7 @@ word_analysis <- function(toot_data, emotion) {
     # Counts occurrences of each word
     summarise(n = n(),
               id = paste(unique(id), collapse = ","),
-              created_at = paste(unique(created_at), collapse = ",")) %>%
+              created_at = paste(unique(created_at), collapse = ",")) %>% #nolint
     # Arranges words in descending order
     arrange(desc(n)) %>%
     # Selects the top 10 most frequent words
@@ -64,8 +64,8 @@ word_analysis <- function(toot_data, emotion) {
 sentiment_analysis <- function(toot_data, expected_ids = NULL) {
   sentiment_data <- toot_data %>%
     filter(id %in% expected_ids) %>%
-    mutate(content = ifelse(is.na(content), "", content)) %>%
-    select(id, created_at, content) %>%
+    mutate(content = ifelse(is.na(content), "", content)) %>% #nolint
+    select(id, created_at, content) %>% #nolint
     mutate(
       afinn = vapply(content, function(x) {
         s <- sentiment(x)$sentiment
@@ -73,8 +73,8 @@ sentiment_analysis <- function(toot_data, expected_ids = NULL) {
       }, FUN.VALUE = numeric(1)),
       bing = vapply(content, function(x) {
         tidy_text <- data.frame(text = x) %>%
-          unnest_tokens(word, text)
-        joined <- inner_join(tidy_text, get_sentiments("bing"), by = "word",
+          unnest_tokens(word, text) #nolint
+        joined <- inner_join(tidy_text, get_sentiments("bing"), by = "word", #nolint
                              relationship = "many-to-many")
         if (nrow(joined) > 0) {
           sum(ifelse(joined$sentiment == "positive", 1, -1))
@@ -84,7 +84,7 @@ sentiment_analysis <- function(toot_data, expected_ids = NULL) {
       }, FUN.VALUE = numeric(1)),
       nrc = vapply(content, function(x) {
         tidy_text <- data.frame(text = x) %>%
-          unnest_tokens(word, text)
+          unnest_tokens(word, text) #nolint
         joined <- inner_join(tidy_text, get_sentiments("nrc"), by = "word",
                              relationship = "many-to-many")
         if (nrow(joined) > 0) {
@@ -98,10 +98,10 @@ sentiment_analysis <- function(toot_data, expected_ids = NULL) {
         }
       }, FUN.VALUE = numeric(1))
     ) %>%
-    select(id, created_at, afinn, bing, nrc) %>%
+    select(id, created_at, afinn, bing, nrc) %>% #nolint
     pivot_longer(cols = c("afinn", "nrc", "bing"),
                  names_to = "method", values_to = "sentiment") %>%
-    arrange(factor(id, levels = expected_ids), method)
+    arrange(factor(id, levels = expected_ids), method) #nolint
   return(sentiment_data)
 }
 
@@ -113,8 +113,8 @@ main <- function(args) {
   if (!is.null(args$output)) {
     sentiment_output <- sentiment_analysis(data)
     if (!is.null(sentiment_output) && nrow(sentiment_output) > 0) {
-      plot_obj <- ggplot(sentiment_output, aes(x = created_at,
-                                               y = sentiment, fill = method)) +
+      plot_obj <- ggplot(sentiment_output, aes(x = created_at, #nolint
+                                               y = sentiment, fill = method)) + #nolint
         geom_col(show.legend = FALSE) +
         facet_wrap(~ method, ncol = 2, scales = "free_y") +
         labs(title = "Sentiment Distribution by Method",
