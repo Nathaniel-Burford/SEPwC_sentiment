@@ -111,11 +111,6 @@ main <- function(args) {
   word_output <- NULL # First creates word_output
   if (!is.null(args$emotion)) {
     word_output <- word_analysis(data, args$emotion)
-    if (!is.null(word_output) && nrow(word_output) > 0) {
-      print(word_output %>%
-              select(word, n) %>%
-              kable(row.names = FALSE))
-    }
   }
   if (!is.null(args$output)) {
     sentiment_output <- sentiment_analysis(data)
