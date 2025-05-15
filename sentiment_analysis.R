@@ -110,12 +110,21 @@ sentiment_analysis <- function(toot_data, expected_ids = NULL) {
 main <- function(args) {
   data <- load_data(args$filename)
   if (!is.null(args$emotion)) {
+    emotion_table <- word_analysis(data, args$emotion)
+    if (nrow(emotion_table) > 0) {
+      cat("\nTop 10 words for emotion:", args$emotion, "\n")
+      print(kable(emotion_table[, c("word", "n")], format = "simple"))
+    } else {
+      cat("No words found for emotion:", args$emotion, "\n")
+    }
+  }
+  if (!is.null(args$emotion)) {
   }
   if (!is.null(args$output)) {
     sentiment_output <- sentiment_analysis(data)
     if (!is.null(sentiment_output) && nrow(sentiment_output) > 0) {
-      plot_obj <- ggplot(sentiment_output, aes(x = created_at, #nolint
-                                               y = sentiment, fill = method)) + #nolint
+      plot_obj <- ggplot(sentiment_output, aes(x = created_at,
+                                               y = sentiment, fill = method)) +
         geom_col(show.legend = FALSE) +
         facet_wrap(~ method, ncol = 2, scales = "free_y") +
         labs(title = "Sentiment Distribution by Method",
