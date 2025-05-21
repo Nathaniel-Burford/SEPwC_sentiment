@@ -65,25 +65,42 @@ word_analysis <- function(toot_data, emotion) {
   return(word_data) #nolint
 }
 
-# Run as --wordcloud after emotion
+# Run as --wordcloud after emotion, makes a wordcloud of words based on emotion
 plot_emotion_wordcloud <- function(toot_data, emotion) {
-  word_data <- toot_data %>% #nolint
-    unnest_tokens(word, content) %>% #nolint
-    inner_join(get_sentiments("nrc"), by = "word") %>% #nolint
-    filter(sentiment == emotion) %>%
-    count(word, sort = TRUE)
-  if (nrow(word_freq) > 0) { #nolint
-    wordcloud(words = word_freq$word,#nolint
-              freq = word_freq$n,
-              min.freq = 1,
-              max.words = 100,
-              random.order = FALSE,
-              rot.per = 0.35,
-              colors = brewer.pal(8, "Dark2"))
-  } else {
-    cat("No words found for wordcloud for emotion:", emotion, "\n")
+  word_data <- toot_data %>%
+    unnest_tokens(word, content) #nolint
+  word_data <- tryCatch({
+    inner_join(word_data, get_sentiments("nrc"), by = "word",
+               relationship = "many-to-many")
+  }, error = function(e) {
+    cat("Error during sentiment join:", conditionMessage(e), "\n")
     return(NULL) #nolint
+  })
+  if (is.null(word_data) || nrow(word_data) == 0) {
+    cat("No sentiment words found for emotion:", emotion, "\n")
+    return()
   }
+  word_data <- word_data %>%
+    filter(sentiment == emotion)
+  if (nrow(word_data) == 0) {
+    cat("No words found matching the emotion:", emotion, "\n")
+    return()
+  }
+  word_freq <- word_data %>%
+    count(word, sort = TRUE) #nolint
+  if (nrow(word_freq) == 0) {
+    cat("No word frequencies to display\n")
+    return()
+  }
+  wordcloud(
+    words = word_freq$word,
+    freq = word_freq$n,
+    min.freq = 1,
+    max.words = 100,
+    random.order = FALSE,
+    rot.per = 0.35,
+    colors = brewer.pal(8, "Dark2")
+  )
 }
 
 sentiment_analysis <- function(toot_data, expected_ids = NULL) {
