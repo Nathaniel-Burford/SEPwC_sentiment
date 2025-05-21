@@ -128,11 +128,18 @@ main <- function(args) {
     if (!is.null(sentiment_output) && nrow(sentiment_output) > 0) {
       plot_obj <- ggplot(sentiment_output, aes(x = created_at, #nolint
                                                y = sentiment, fill = method)) + #nolint
-        geom_col(show.legend = FALSE) +
+        geom_col(show.legend = FALSE, position = "dodge") +
         facet_wrap(~ method, ncol = 2, scales = "free_y") +
         labs(title = "Sentiment Distribution by Method",
              x = "Time of toot", y = "Sentiment Score") +
-        theme_minimal()
+        theme_minimal(base_size = 14) +
+        theme(
+          strip.background = element_rect(fill = "white"),
+          strip.text = element_text(size = 14, face = "bold"),
+          panel.grid.major = element_line(colour = "gray90"),
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 45, hjust = 1)
+        )
       ggsave(args$output, plot_obj, width = 10, height = 6)
       if (isTRUE(args$verbose)) {
         cat(paste0("Plot saved to ", args$output, "\n"))
