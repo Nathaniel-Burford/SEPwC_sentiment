@@ -175,8 +175,9 @@ main <- function(args) {
         facet_wrap(~ method, ncol = 2, scales = "free_y") +
         labs(title = "Sentiment Distribution by Method",
              x = "Time of toot", y = "Sentiment Score") +
-        theme_minimal(base_size = 14) +
+        theme_light(base_size = 14) +
         theme(
+          panel.background = element_rect(fill = "white"),
           strip.background = element_rect(fill = "white"),
           strip.text = element_text(size = 14, face = "bold"),
           panel.grid.major = element_line(colour = "gray90"),
