@@ -10,6 +10,8 @@ suppressPackageStartupMessages({
   library(ggpubr)
   library(ggplot2)
   library(knitr)
+  library(wordcloud)
+  library(RColorBrewer)
 })
 
 load_data <- function(filename) {
@@ -63,6 +65,27 @@ word_analysis <- function(toot_data, emotion) {
   return(word_data) #nolint
 }
 
+# Run as --wordcloud after emotion
+plot_emotion_wordcloud <- function(toot_data, emotion) {
+  word_data <- toot_data %>% #nolint
+    unnest_tokens(word, content) %>% #nolint
+    inner_join(get_sentiments("nrc"), by = "word") %>% #nolint
+    filter(sentiment == emotion) %>%
+    count(word, sort = TRUE)
+  if (nrow(word_freq) > 0) { #nolint
+    wordcloud(words = word_freq$word,#nolint
+              freq = word_freq$n,
+              min.freq = 1,
+              max.words = 100,
+              random.order = FALSE,
+              rot.per = 0.35,
+              colors = brewer.pal(8, "Dark2"))
+  } else {
+    cat("No words found for wordcloud for emotion:", emotion, "\n")
+    return(NULL) #nolint
+  }
+}
+
 sentiment_analysis <- function(toot_data, expected_ids = NULL) {
   sentiment_data <- toot_data %>%
     filter(id %in% expected_ids) %>%
@@ -107,7 +130,6 @@ sentiment_analysis <- function(toot_data, expected_ids = NULL) {
   return(sentiment_data)
 }
 
-
 main <- function(args) {
   data <- load_data(args$filename)
   if (!is.null(args$emotion)) {
@@ -119,6 +141,10 @@ main <- function(args) {
     } else {
       cat("No words found for emotion:", args$emotion, "\n")
     }
+  }
+  if (!is.null(args$emotion) && isTRUE(args$wordcloud)) {
+    cat("\nGenerating word cloud for emotion:", args$emotion, "\n")
+    plot_emotion_wordcloud(data, args$emotion)
   }
   if (!is.null(args$emotion)) {
   }
@@ -171,6 +197,9 @@ if (sys.nframe() == 0) {
                       help = "Print progress")
   parser$add_argument("-p", "--plot",
                       help = "Plot something. Give the filename")
+  parser$add_argument("--wordcloud",
+                      action = "store_true",
+                      help = "Generate a word cloud for the given emotion")
   args <- parser$parse_args()
   main(args)
 }
