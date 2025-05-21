@@ -166,8 +166,8 @@ main <- function(args) {
   if (!is.null(args$emotion)) {
   }
   # Creates plot
-  if (!is.null(args$output)) {
-    sentiment_output <- sentiment_analysis(data)
+  if (!is.null(args$plot)) {
+    sentiment_output <- sentiment_analysis(data, expected_ids = unique(data$id))
     if (!is.null(sentiment_output) && nrow(sentiment_output) > 0) {
       plot_obj <- ggplot(sentiment_output, aes(x = created_at, #nolint
                                                y = sentiment, fill = method)) + #nolint
@@ -183,9 +183,9 @@ main <- function(args) {
           panel.grid.minor = element_blank(),
           axis.text.x = element_text(angle = 45, hjust = 1)
         )
-      ggsave(args$output, plot_obj, width = 10, height = 6)
+      ggsave(args$plot, plot_obj, width = 10, height = 6)
       if (isTRUE(args$verbose)) {
-        cat(paste0("Plot saved to ", args$output, "\n"))
+        cat(paste0("Plot saved to ", args$plot, "\n"))
       }
     } else {
       if (isTRUE(args$verbose)) {
