@@ -195,8 +195,6 @@ main <- function(args) {
   }
 }
 
-
-
 if (sys.nframe() == 0) {
 
   # main program, called via Rscript
