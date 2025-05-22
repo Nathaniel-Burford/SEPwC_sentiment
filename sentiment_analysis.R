@@ -12,6 +12,7 @@ suppressPackageStartupMessages({
   library(knitr)
   library(wordcloud)
   library(RColorBrewer)
+  library(sentimentr)
 })
 
 load_data <- function(filename) {
@@ -169,6 +170,29 @@ main <- function(args) {
   if (!is.null(args$plot)) {
     sentiment_output <- sentiment_analysis(data, expected_ids = unique(data$id))
     if (!is.null(sentiment_output) && nrow(sentiment_output) > 0) {
+      # Optional summary, run as --summary
+      if (isTRUE(args$summary)) {
+        cat("\n Sentiment Trends Summary:\n")
+        trend_summary <- sentiment_output %>%
+          group_by(method) %>% #nolint
+          summarise(
+            avg_sentiment = round(mean(sentiment), 3),
+            max_sentiment = round(max(sentiment), 3),
+            max_time = created_at[which.max(sentiment)], #nolint
+            min_sentiment = round(min(sentiment), 3),
+            min_time = created_at[which.min(sentiment)]
+          )
+        print(trend_summary)
+        cat("\n Most Extreme Toots:\n")
+        toot_sent <- data %>%
+          mutate(score = vapply(content, function(x) { #nolint
+            s <- sentiment(x)$sentiment
+            if (length(s) > 0) mean(s) else 0 #nolint
+          }, FUN.VALUE = numeric(1))) %>%
+          arrange(score) #nolint
+        cat("\n Most Negative Toot:\n", toot_sent$content[1], "\n")
+        cat("\n Most Positive Toot:\n", tail(toot_sent$content, 1), "\n")
+      }
       plot_obj <- ggplot(sentiment_output, aes(x = created_at, #nolint
                                                y = sentiment, fill = method, #nolint
                                                colour = method)) + #nolint
@@ -222,6 +246,9 @@ if (sys.nframe() == 0) {
   parser$add_argument("--wordcloud",
                       action = "store_true",
                       help = "Generate a word cloud for the given emotion")
+  parser$add_argument("--summary",
+                      action = "store_true",
+                      help = "Print a sentiment trend summary")
   args <- parser$parse_args()
   main(args)
 }
