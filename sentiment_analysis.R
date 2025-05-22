@@ -163,8 +163,6 @@ main <- function(args) {
     cat("\nGenerating word cloud for emotion:", args$emotion, "\n")
     plot_emotion_wordcloud(data, args$emotion)
   }
-  if (!is.null(args$emotion)) {
-  }
   # Creates plot
   if (!is.null(args$plot)) {
     sentiment_output <- sentiment_analysis(data, expected_ids = unique(data$id))
