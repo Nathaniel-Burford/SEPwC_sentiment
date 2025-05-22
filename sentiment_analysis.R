@@ -252,3 +252,4 @@ if (sys.nframe() == 0) {
   args <- parser$parse_args()
   main(args)
 }
+#Copyright 2025 by Nathaniel Burford. CC-BY- #nolint
