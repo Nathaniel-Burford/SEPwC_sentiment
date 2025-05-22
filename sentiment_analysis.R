@@ -170,21 +170,27 @@ main <- function(args) {
     sentiment_output <- sentiment_analysis(data, expected_ids = unique(data$id))
     if (!is.null(sentiment_output) && nrow(sentiment_output) > 0) {
       plot_obj <- ggplot(sentiment_output, aes(x = created_at, #nolint
-                                               y = sentiment, fill = method)) + #nolint
-        geom_col(show.legend = FALSE, position = "dodge") +
-        facet_wrap(~ method, ncol = 2, scales = "free_y") +
-        labs(title = "Sentiment Distribution by Method",
+                                               y = sentiment, fill = method, #nolint
+                                               colour = method)) + #nolint
+        geom_col(show.legend = FALSE, position = "dodge", width = 0.0001) +
+        scale_x_datetime(date_breaks = "1 month", date_labels = "%b %d") +
+        facet_wrap(~ method, ncol = 2, scales = "free_y",
+                   strip.position = "left") +
+        labs(title = "Sentiment Distribution by Method Over Time",
              x = "Time of toot", y = "Sentiment Score") +
         theme_light(base_size = 14) +
         theme(
-          panel.background = element_rect(fill = "white"),
+          axis.title.y = element_text(size = 14, margin = margin(r = 10)),
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          axis.title.x = element_text(size = 14, margin = margin(t = 10)),
+          panel.background = element_rect(fill = "white", colour = "black"),
           strip.background = element_rect(fill = "white"),
-          strip.text = element_text(size = 14, face = "bold"),
+          strip.text = element_text(size = 14, face = "bold", colour = "black"),
           panel.grid.major = element_line(colour = "gray90"),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 45, hjust = 1)
+          panel.grid.minor = element_blank()
         )
-      ggsave(args$plot, plot_obj, width = 10, height = 6)
+      ggsave(args$plot, plot_obj, width = 10, height = 8, units = "in",
+             dpi = 300)
       if (isTRUE(args$verbose)) {
         cat(paste0("Plot saved to ", args$plot, "\n"))
       }
