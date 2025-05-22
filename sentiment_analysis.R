@@ -12,7 +12,6 @@ suppressPackageStartupMessages({
   library(knitr)
   library(wordcloud)
   library(RColorBrewer)
-  library(sentimentr)
 })
 
 load_data <- function(filename) {
